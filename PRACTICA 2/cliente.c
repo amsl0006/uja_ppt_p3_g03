@@ -106,21 +106,26 @@ int main(int *argc, char *argv[])
 					case S_HELO:
 						// Se recibe el mensaje de bienvenida
 						break;
+
+
 					case S_MAIL://estado para la realizacion del correo electronico
 						// establece la conexion de aplicacion 
-						printf("CLIENTE> Introduzca el usuario (enter para salir): ");
+						printf("CLIENTE> Escriba el correo elecotronico que desea enviar: ");
 						gets(input);
 						if(strlen(input)==0) // si no se introduce ningun caracter se sale porque pasa al estado QUIT
 						{
-							sprintf_s (buffer_out, sizeof(buffer_out), "%s%s",SD,CRLF);
+							sprintf_s (buffer_out, sizeof(buffer_out), "%s%s",SD,CRLF); 
 							estado=S_QUIT;
 						}
 						else
 
-						sprintf_s (buffer_out, sizeof(buffer_out), "%s %s%s",SC,input,CRLF);
+						sprintf_s (buffer_out, sizeof(buffer_out), "%s %s%s",MA,input,CRLF); //aqui asignamos MA para el sprintf*******¿?¿?¿?¿?
 						break;
-					case S_PASS:// estado contraseña para escribir la contraseña
-						printf("CLIENTE> Introduzca la clave (enter para salir): ");
+
+
+
+					case S_RCPT_TO:// estado receptor donde se escribe el destinatario del correo
+						printf("CLIENTE> Introduzca el destinatario del correo electronico: ");
 						gets(input);
 						if(strlen(input)==0)// si no se introduce ningun caracter se sale porque pasa al estado QUIT
 						{
@@ -128,9 +133,12 @@ int main(int *argc, char *argv[])
 							estado=S_QUIT;
 						}
 						else
-							sprintf_s (buffer_out, sizeof(buffer_out), "%s %s%s",PW,input,CRLF);
+							sprintf_s (buffer_out, sizeof(buffer_out), "%s %s%s",RCPT,input,CRLF); //asignamos RCPT****¿?¿?¿?¿?
 						break;
-						//---------------------------------------------------------------------------------------------------
+						
+
+
+						//en el estado S_DATA no sabria que es lo que tiene que aparecer o que es lo qeu hay que poner¿?¿?¿?¿??
 					case S_DATA://estado data que es para enviar datos
 						
 						

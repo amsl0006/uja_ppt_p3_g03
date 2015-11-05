@@ -10,7 +10,7 @@
 
 #define HE "HELO" 
 #define MA "MAIL"
-
+#define RCPT "RCPT_TO"
 
 // RESPUESTAS A COMANDOS DE APLICACION
 #define OK  "OK"
@@ -22,10 +22,10 @@
 //ESTADOS
 #define S_HELO 0
 #define S_MAIL 1
-#define S_PASS 2
+#define S_RCPT_TO 2
 #define S_DATA 3
-#define S_QUIT 4
-#define S_EXIT 5
+//#define S_QUIT 4
+//#define S_EXIT 5
 
 //PUERTO DEL SERVICIO
 #define TCP_SERVICE_PORT	6000
