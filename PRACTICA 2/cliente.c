@@ -98,19 +98,26 @@ int main(int *argc, char *argv[])
 			{
 				printf("CLIENTE> CONEXION ESTABLECIDA CON %s:%d\r\n",ipdest,TCP_SERVICE_PORT);
 			
-		
+		        
+				recibidos=recv(sockfd,buffer_in,512,0); //recibimos la informacion del servidor para saber que esta listo
+
+
 				//Inicio de la máquina de estados
 				do{
 					switch(estado)
 					{
 					case S_HELO:
 						// Se recibe el mensaje de bienvenida
+						printf("introduzca el nombre del host: ");
+						gets(buffer_in);
+						sprintf(buffer_out,"HELO %s%s",buffer_in,CRLF);
+
 						break;
 
 
-					case S_MAIL://estado para la realizacion del correo electronico
+					case S_MAIL_FROM://estado para la realizacion del correo electronico
 						// establece la conexion de aplicacion 
-						printf("CLIENTE> Escriba el correo elecotronico que desea enviar: ");
+						printf("CLIENTE> Escriba la direccion de correo electronico desde la cual va a enviar el mensaje: ");
 						gets(input);
 						if(strlen(input)==0) // si no se introduce ningun caracter se sale porque pasa al estado QUIT
 						{
@@ -120,12 +127,13 @@ int main(int *argc, char *argv[])
 						else
 
 						sprintf_s (buffer_out, sizeof(buffer_out), "%s %s%s",MA,input,CRLF); //aqui asignamos MA para el sprintf*******¿?¿?¿?¿?
+						estado=S_RCPT_TO
 						break;
 
 
 
 					case S_RCPT_TO:// estado receptor donde se escribe el destinatario del correo
-						printf("CLIENTE> Introduzca el destinatario del correo electronico: ");
+						printf("CLIENTE> Introduzca la direccion del correo electronico a la que se enviara el mensaje: ");
 						gets(input);
 						if(strlen(input)==0)// si no se introduce ningun caracter se sale porque pasa al estado QUIT
 						{
@@ -134,15 +142,14 @@ int main(int *argc, char *argv[])
 						}
 						else
 							sprintf_s (buffer_out, sizeof(buffer_out), "%s %s%s",RCPT,input,CRLF); //asignamos RCPT****¿?¿?¿?¿?
+							estado=S_MENSAJE;
 						break;
 						
 
 
 						//en el estado S_DATA no sabria que es lo que tiene que aparecer o que es lo qeu hay que poner¿?¿?¿?¿??
 					case S_DATA://estado data que es para enviar datos
-						
-						
-						printf("CLIENTE> escirba la frase SUM NUM1 NUM2 CRLF separados por espacios y solo sustituyendo NUM1 y NUM2 por dos numeros de 4 digitos como maximo:(intro para salir)\n" );
+						printf("CLIENTE> Introduzca DATA para comenzar a escribir el mensaje:");
 						gets(input);
 						if(strlen(input)==0)
 						{
@@ -154,16 +161,74 @@ int main(int *argc, char *argv[])
 						else{ //todo lo que se imprima por pantalla se envia al servidor
 							sprintf_s (buffer_out, sizeof(buffer_out), "%s%s",input,CRLF);
 
-						printf("%s%s",input,CRLF);
-						sprintf_s (buffer_out, sizeof(buffer_out), "%s%s",input,CRLF);
+						//printf("%s%s",input,CRLF);
+						//sprintf_s (buffer_out, sizeof(buffer_out), "%s%s",input,CRLF);
 					
 						}
 						break;
-				 
+					
+					case S_MENSAJE:
+						pritnf("fecha de origen:");
+						gets(input);
+						if(strlen(input)==0)
+						{
+
+							sprintf_s (buffer_out, sizeof(buffer_out), "%s%s",SD,CRLF);
+							estado=S_QUIT;
+							
+						}
+						else{ //todo lo que se imprima por pantalla se envia al servidor
+							sprintf_s (buffer_out, sizeof(buffer_out), "%s%s",input,CRLF);
+							}
+
+
+						pritnf("asunto:");
+						gets(input);
+						if(strlen(input)==0)
+						{
+
+							sprintf_s (buffer_out, sizeof(buffer_out), "%s%s",SD,CRLF);
+							estado=S_QUIT;
+							
+						}
+						else{ //todo lo que se imprima por pantalla se envia al servidor
+							sprintf_s (buffer_out, sizeof(buffer_out), "%s%s",input,CRLF);
+							}
+
+
+						pritnf("destinatario:");
+						gets(input);
+						if(strlen(input)==0)
+						{
+
+							sprintf_s (buffer_out, sizeof(buffer_out), "%s%s",SD,CRLF);
+							estado=S_QUIT;
+							
+						}
+						else{ //todo lo que se imprima por pantalla se envia al servidor
+							sprintf_s (buffer_out, sizeof(buffer_out), "%s%s",input,CRLF);
+							}
+
+
+						pritnf("remitente:");
+						gets(input);
+						if(strlen(input)==0)
+						{
+
+							sprintf_s (buffer_out, sizeof(buffer_out), "%s%s",SD,CRLF);
+							estado=S_QUIT;
+							
+						}
+						else{ //todo lo que se imprima por pantalla se envia al servidor
+							sprintf_s (buffer_out, sizeof(buffer_out), "%s%s",input,CRLF);
+							}
+
+
+						break;
 				
 					}
 					//Envio
-					if(estado!=S_HELO){
+				//	if(estado!=S_HELO){
 					// Ejercicio: Comprobar el estado de envio
 						// La primitiva SEND se utiliza para el envio de datos y en este caso esta compuesta por:
 							//sockfd: Socket para recibir y enviar

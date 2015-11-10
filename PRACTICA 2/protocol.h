@@ -9,8 +9,10 @@
 #define SD2 "EXIT"  // Finalizacion de la conexion de aplicacion y finaliza servidor*/
 
 #define HE "HELO" 
-#define MA "MAIL"
+#define MA "MAIL_FROM"
 #define RCPT "RCPT_TO"
+#define MENS "MENSAJE"
+#define SD  "QUIT"  // Finalizacion de la conexion de aplicacion
 
 // RESPUESTAS A COMANDOS DE APLICACION
 #define OK  "OK"
@@ -21,9 +23,10 @@
 
 //ESTADOS
 #define S_HELO 0
-#define S_MAIL 1
+#define S_MAIL_FROM 1
 #define S_RCPT_TO 2
 #define S_DATA 3
+#define S_MENSAJE 4
 //#define S_QUIT 4
 //#define S_EXIT 5
 
