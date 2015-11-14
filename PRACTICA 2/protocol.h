@@ -9,8 +9,9 @@
 #define SD2 "EXIT"  // Finalizacion de la conexion de aplicacion y finaliza servidor*/
 
 #define HE "HELO" 
-#define MA "MAIL_FROM"
-#define RCPT "RCPT_TO"
+#define MA "MAIL FROM:"
+#define RCPT "RCPT TO:"
+#define DATA "DATA"
 #define MENS "MENSAJE"
 #define SD  "QUIT"  // Finalizacion de la conexion de aplicacion
 
