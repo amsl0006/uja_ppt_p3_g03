@@ -192,7 +192,7 @@ int main(int *argc, char *argv[])
 							una línea que contiene ".". Solo recibimos respuesta del servidor cuando se finalizan
 							los datos (cuando se escribe "."en una línea aparte).*/
 					
-						pritnf("fecha de origen:");
+						printf("fecha de origen:");
 						gets(input);
 						if(strlen(input)==0)
 						{
@@ -206,7 +206,7 @@ int main(int *argc, char *argv[])
 							}
 
 
-						pritnf("asunto:"); //cambiar el orden de asunto en plan primero meter remitente y destinatario y despues introducir el mensaje
+						printf("asunto:"); //cambiar el orden de asunto en plan primero meter remitente y destinatario y despues introducir el mensaje
 						gets(input);
 						if(strlen(input)==0)
 						{
@@ -217,12 +217,16 @@ int main(int *argc, char *argv[])
 						}
 						else{ //todo lo que se imprima por pantalla se envia al servidor
 							sprintf_s (buffer_out, sizeof(buffer_out), "%s%s",input,CRLF);
-							enviados=send(sockfd,buffer_out,(int)strlen(buffer_out),0);
+							//enviados=send(sockfd,buffer_out,(int)strlen(buffer_out),0);
 
-							sprintf_s (buffer_out, sizeof(buffer_out), "%s",CRLF);
+							//sprintf_s (buffer_out, sizeof(buffer_out), "%s",CRLF);
 						}
 
-						prinf("mensaje de correo: \r\n");
+						sprintf_s (buffer_out, sizeof(buffer_out), "Remitente: %s%s",MA,CRLF);
+
+							sprintf_s (buffer_out, sizeof(buffer_out), "Destinatario: %s%s",RCPT,CRLF);
+
+						printf("mensaje de correo: \r\n");
 						//para poder escribir varias lineas dentro del mensaje hacemos...
 
 						do{
@@ -238,48 +242,48 @@ int main(int *argc, char *argv[])
 							sprintf_s (buffer_out, sizeof(buffer_out), "%s%s",input,CRLF);
 							
 						}
+						}while(strcmp(input,".")!=0);
 
 
 
+						//printf("destinatario:");
+						//gets(input);
+						//if(strlen(input)==0)
+						//{
 
-						pritnf("destinatario:");
-						gets(input);
-						if(strlen(input)==0)
-						{
-
-							sprintf_s (buffer_out, sizeof(buffer_out), "%s%s",SD,CRLF);
-							estado=S_QUIT;
+						//	sprintf_s (buffer_out, sizeof(buffer_out), "%s%s",SD,CRLF);
+						//	estado=S_QUIT;
 							
-						}
-						else{ //todo lo que se imprima por pantalla se envia al servidor
-							sprintf_s (buffer_out, sizeof(buffer_out), "%s%s",input,CRLF);
+						//}
+						//else{ //todo lo que se imprima por pantalla se envia al servidor
+						//	sprintf_s (buffer_out, sizeof(buffer_out), "Destinatario: %s%s",RCPT,CRLF);
 							
-							}
+							//}
 
 
-						pritnf("remitente:");
-						gets(input);
-						if(strlen(input)==0)
-						{
+						//printf("remitente:");
+						//gets(input);
+						//if(strlen(input)==0)
+						//{
 
-							sprintf_s (buffer_out, sizeof(buffer_out), "%s%s",SD,CRLF);
-							estado=S_QUIT;
+							//sprintf_s (buffer_out, sizeof(buffer_out), "%s%s",SD,CRLF);
+							//estado=S_QUIT;
 							
-						}
-						else{ //todo lo que se imprima por pantalla se envia al servidor
-							sprintf_s (buffer_out, sizeof(buffer_out), "%s%s",input,CRLF);
+						//}
+						//else{ //todo lo que se imprima por pantalla se envia al servidor
+						//	sprintf_s (buffer_out, sizeof(buffer_out), "Remitente: %s%s",MA,CRLF);
 							
-							}
+							//}
 
 					
 
 					/*Introducimos una opción para el usuario por si quiere escribir un nuevo correo sin
 					cerrar la sesion que ya esta iniciada. Si selecciona volver a enviar un mensaje, volveremos
 					al estado 2, MAIL_FROM (aunque indiquemos S_HELO, al salir del caso con el
-					break, se incrementa en 1 el estado). Si no quiere escribirlo pasamos al ultimo caso.*/
+					break, se incrementa en 1 el estado). Si no quiere escribirlo pasamos al ultimo caso.
 					printf(" ¿quiere enviar otro mensaje antes de cerrar sesion?(s/n)");
 					if(getch()=='s')
-						estado=S_HELO;
+						estado=S_MAIL_FROM;*/
 
 					break;
 
@@ -293,8 +297,9 @@ int main(int *argc, char *argv[])
 						printf("%s",buffer_in);
 						if(buffer_in[0]!='2')
 							printf("codigo de respuesta no valido, intentelo de nuevo");
-					}while(buffer[0]!='2');
+					}while(buffer_in[0]!='2');
 				break;
+
 
 				}
 				   
