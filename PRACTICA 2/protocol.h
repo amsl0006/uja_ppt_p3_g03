@@ -2,6 +2,8 @@
 #define protocolostpte_practicas_headerfile
 #endif
 
+
+int getTimeZone();
 // COMANDOS DE APLICACION
 /*#define SC "USER"  // SOLICITUD DE CONEXION USER usuario 
 #define PW "PASS"  // Password del usuario  PASS password

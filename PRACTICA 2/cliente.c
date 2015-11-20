@@ -18,6 +18,8 @@ Autor: Juan Carlos Cuevas Martínez
 #include <time.h>
 #include <conio.h>
 
+
+
 #include "protocol.h"
 
 
@@ -32,6 +34,7 @@ int main(int *argc, char *argv[])
 	int recibidos=0,enviados=0; //Inicializacion de variables en 0
 	int estado=S_HELO; //Primer valor en la variable estado ya que será una maquina de estados
 	char option; //declaramos option
+	
 
 	//aqui definimos los parametros para el estado S_SUM
 	char primera_palabra[4]="";
@@ -40,7 +43,12 @@ int main(int *argc, char *argv[])
 	unsigned int num1=0;
 	unsigned int num2=0;
 
+				time_t  tiempo = time(0);
+						char cad[128];
+						struct tm *tmPtr ;
+						int tz;
 
+				
 	WORD wVersionRequested;
 	WSADATA wsaData;
 	int err;
@@ -128,16 +136,11 @@ int main(int *argc, char *argv[])
 						
 						printf("CLIENTE> Escriba la direccion de correo electronico desde la cual va a enviar el mensaje: ");
 						gets(input);
-						if(strlen(input)==0) // si no se introduce ningun caracter se sale porque pasa al estado QUIT
-						{
-							sprintf_s (buffer_out, sizeof(buffer_out), "%s%s",SD,CRLF); 
-							estado=S_QUIT;
-						}
-						else{
+						
 
-						sprintf_s (buffer_out, sizeof(buffer_out), "%s%s%s",MA,input,CRLF); //aqui en vez de MA no valdria con solo input? y si queremos dejar MA, al principio, en el gets deberia de ser gets(MA) no?
-						}
-						//estado=S_RCPT_TO  // habria que poner si pasamos al siguiente estado o habria que dejarlo como esta?
+						sprintf_s (buffer_out, sizeof(buffer_out), "%s%s%s",MA,input,CRLF); //MA lleva el valor que le hemos asignado en protocol.h
+					
+						
 						break;
 
 
@@ -148,16 +151,11 @@ int main(int *argc, char *argv[])
 						
 						printf("CLIENTE> Introduzca la direccion del correo electronico a la que se enviara el mensaje: ");
 						gets(input);
-						if(strlen(input)==0)// si no se introduce ningun caracter se sale porque pasa al estado QUIT
-						{
-							sprintf_s (buffer_out, sizeof(buffer_out), "%s%s",SD,CRLF);
-							estado=S_QUIT;
-						}
-						else{
+						
 
-						sprintf_s (buffer_out, sizeof(buffer_out), "%s %s%s",RCPT,input,CRLF); //lo mismo que en el anterior con MA
-						}	
-						//estado=S_MENSAJE;
+						sprintf_s (buffer_out, sizeof(buffer_out), "%s %s%s",RCPT,input,CRLF); 
+						
+						
 						break;
 						
 
@@ -167,19 +165,10 @@ int main(int *argc, char *argv[])
 						cada linea de texto esta finalizada por CRL. La respuesta del servidor
 						debe empezar por 3 para que el comando sea bueno.*/
 						
-						/*if(strlen(input)==0)
-						{
-
-							sprintf_s (buffer_out, sizeof(buffer_out), "%s%s",SD,CRLF);
-							estado=S_QUIT;
-							
-						}
-						else{ //todo lo que se imprima por pantalla se envia al servidor
-							*/
+						
 						sprintf_s (buffer_out, sizeof(buffer_out), "%s%s",DATA,CRLF); //tenemos que introducir DATA seguido de un salto de linea, lo cual ya lo hacemos aqui asignando al segundo %s el valor de CRLF
 							
-						//printf("%s%s",input,CRLF);
-						//sprintf_s (buffer_out, sizeof(buffer_out), "%s%s",input,CRLF);
+						
 					
 						
 						break;
@@ -191,114 +180,95 @@ int main(int *argc, char *argv[])
 							los datos escribimmos una línea en blanco y para indicar el fin de datos escribimos
 							una línea que contiene ".". Solo recibimos respuesta del servidor cuando se finalizan
 							los datos (cuando se escribe "."en una línea aparte).*/
+						
+						tiempo= time(NULL);
+						tmPtr=localtime(&tiempo);
+						
+						strftime(cad,128,"%d/%m/%y %H:%M:%S",tmPtr);
+						tz=getTimeZone();
+						sprintf(cad,"%s %.4d",cad,tz);
+						printf("la hora local es: %s\n",asctime(tmPtr));
+						printf("la hora y fecha locales son: %s\n",cad);
+
+						
+        
+
+
+						printf("asunto:"); 
+						gets(input);
+
+						 //todo lo que se imprima por pantalla se envia al servidor
+							sprintf_s (buffer_out, sizeof(buffer_out), "%s%s",input,CRLF);
+							
 					
-						printf("fecha de origen:");
-						gets(input);
-						if(strlen(input)==0)
-						{
 
-							sprintf_s (buffer_out, sizeof(buffer_out), "%s%s",SD,CRLF);
+
+
+						sprintf_s (buffer_out, sizeof(buffer_out), "Remitente: %s%s",MA,CRLF); //aqui tenemos asignado el remitente que ya hemos declarado previamente en el estado MAIL_FROM
+
+						sprintf_s (buffer_out, sizeof(buffer_out), "Destinatario: %s%s",RCPT,CRLF); //aqui tenemso asignado el destinatario que ya hemos asignado previamente en el estado S_RCPT_TO
+
+						enviados=send(sockfd,buffer_out,(int)strlen(buffer_out),0); //aqui enviamos las cabeceras y hacemos el control de errores
+
+						if(enviados<=0){// si los datos enviados tienen un valor de menor o igual que 0
+						DWORD error=GetLastError();
+						if(enviados<0){ // si los datos enviados tienen un valor de -1 hay error
+							printf("SERVIDOR> Error %d en el envio de datos\r\n", error);
 							estado=S_QUIT;
-							
-						}
-						else{ //todo lo que se imprima por pantalla se envia al servidor
-							sprintf_s (buffer_out, sizeof(buffer_out), "%s%s",input,CRLF);
-							}
-
-
-						printf("asunto:"); //cambiar el orden de asunto en plan primero meter remitente y destinatario y despues introducir el mensaje
-						gets(input);
-						if(strlen(input)==0)
-						{
-
-							sprintf_s (buffer_out, sizeof(buffer_out), "%s%s",SD,CRLF);
+							continue;
+						} 
+						else{ // si no, es decir, si su valor es 0 se cierra la conexion
+							printf("SERVIDOR> Conexión con el cliente cerrada\r\n");
 							estado=S_QUIT;
-							
+							continue;
 						}
-						else{ //todo lo que se imprima por pantalla se envia al servidor
-							sprintf_s (buffer_out, sizeof(buffer_out), "%s%s",input,CRLF);
-							//enviados=send(sockfd,buffer_out,(int)strlen(buffer_out),0);
+					}
+					else{ // el valor es mayor que 0 y por tanto los datos se envian correctamente
+						printf("SERVIDOR> Datos enviados correctamente\r\n");}
 
-							//sprintf_s (buffer_out, sizeof(buffer_out), "%s",CRLF);
-						}
 
-						sprintf_s (buffer_out, sizeof(buffer_out), "Remitente: %s%s",MA,CRLF);
 
-							sprintf_s (buffer_out, sizeof(buffer_out), "Destinatario: %s%s",RCPT,CRLF);
+
 
 						printf("mensaje de correo: \r\n");
-						//para poder escribir varias lineas dentro del mensaje hacemos...
-
+						
+						//para poder escribir varias lineas dentro del mensaje hacemos un do-while para que te este pidiendo varias lineas hasta que se encuentra un punto
 						do{
 							gets(input);
-						if(strlen(input)==0)
-						{
-
-							sprintf_s (buffer_out, sizeof(buffer_out), "%s%s",SD,CRLF);
-							estado=S_QUIT;
-							
-						}
-						else{ //todo lo que se imprima por pantalla se envia al servidor
+						
+							//todo lo que se imprima por pantalla se envia al servidor
 							sprintf_s (buffer_out, sizeof(buffer_out), "%s%s",input,CRLF);
 							
-						}
+							if(strcmp(input,".")!=0){
+							enviados=send(sockfd,buffer_out,(int)strlen(buffer_out),0);
+								if(enviados<=0){// si los datos enviados tienen un valor de menor o igual que 0
+									DWORD error=GetLastError();
+									if(enviados<0){ // si los datos enviados tienen un valor de -1 hay error
+										printf("SERVIDOR> Error %d en el envio de datos\r\n", error);
+										estado=S_QUIT;
+										continue;
+									} 
+									else{ // si no, es decir, si su valor es 0 se cierra la conexion
+										printf("SERVIDOR> Conexión con el cliente cerrada\r\n");
+										estado=S_QUIT;
+										continue;
+									}
+								}
+								else{ // el valor es mayor que 0 y por tanto los datos se envian correctamente
+								printf("SERVIDOR> Datos enviados correctamente\r\n");}
+
+							}
 						}while(strcmp(input,".")!=0);
 
+						break;
 
-
-						//printf("destinatario:");
-						//gets(input);
-						//if(strlen(input)==0)
-						//{
-
-						//	sprintf_s (buffer_out, sizeof(buffer_out), "%s%s",SD,CRLF);
-						//	estado=S_QUIT;
-							
-						//}
-						//else{ //todo lo que se imprima por pantalla se envia al servidor
-						//	sprintf_s (buffer_out, sizeof(buffer_out), "Destinatario: %s%s",RCPT,CRLF);
-							
-							//}
-
-
-						//printf("remitente:");
-						//gets(input);
-						//if(strlen(input)==0)
-						//{
-
-							//sprintf_s (buffer_out, sizeof(buffer_out), "%s%s",SD,CRLF);
-							//estado=S_QUIT;
-							
-						//}
-						//else{ //todo lo que se imprima por pantalla se envia al servidor
-						//	sprintf_s (buffer_out, sizeof(buffer_out), "Remitente: %s%s",MA,CRLF);
-							
-							//}
+				
 
 					
-
-					/*Introducimos una opción para el usuario por si quiere escribir un nuevo correo sin
-					cerrar la sesion que ya esta iniciada. Si selecciona volver a enviar un mensaje, volveremos
-					al estado 2, MAIL_FROM (aunque indiquemos S_HELO, al salir del caso con el
-					break, se incrementa en 1 el estado). Si no quiere escribirlo pasamos al ultimo caso.
-					printf(" ¿quiere enviar otro mensaje antes de cerrar sesion?(s/n)");
-					if(getch()=='s')
-						estado=S_MAIL_FROM;*/
-
-					break;
-
 					case S_QUIT:
 					/*estado para Cerrar conexión, que respondera con un comando que comienza por 2, si no es así, se volverá
 					a ejecutar este comando hasta que el mensaje nos indique que todo está correcto.*/
-					do{
-						sprintf_s (buffer_out, sizeof(buffer_out), "%s",CRLF);
-						enviados=send(sockfd,buffer_out,(int)strlen(buffer_out),0);
-						recibidos=recv(sockfd,buffer_in,512,0);	
-						printf("%s",buffer_in);
-						if(buffer_in[0]!='2')
-							printf("codigo de respuesta no valido, intentelo de nuevo");
-					}while(buffer_in[0]!='2');
-				break;
+							break;
 
 
 				}
@@ -370,8 +340,7 @@ int main(int *argc, char *argv[])
 					{
 						buffer_in[recibidos]=0x00;
 						printf(buffer_in);
-						//if(estado!=S_DATA && strncmp(buffer_in,OK,2)==0) // si el estado es diferente de DATA y comparamos los dos primeros caracteres del mensaje recibido y OK y si coinciden pasa al siguiente estado.
-							//estado++;
+						
 						switch (estado){
 						case S_HELO:
 							if (buffer_in[0]=='2'){
@@ -386,13 +355,16 @@ int main(int *argc, char *argv[])
 						case S_RCPT_TO:
 							if (buffer_in[0]=='2'){
 								estado++;}
-							else estado=S_QUIT;//HABRIA QUE VOLVER AL MAIL FROM? O SEGUIRIAMOS AQUI?
+						
 							break;
 						case S_DATA:
 							if (buffer_in[0]=='3'){
 								estado++;}
 							else estado=S_QUIT;
 							break;
+							/*Introducimos una opción para el usuario por si quiere escribir un nuevo correo sin
+							cerrar la sesion que ya esta iniciada. Si selecciona volver a enviar un mensaje, volveremos
+							al estado 2, MAIL_FROM. Si no quiere escribirlo pasamos al ultimo caso S_QUIT.*/
 						case S_MENSAJE:
 							if (buffer_in[0]=='2'){
 							printf("¿quiere mandar otro mensaje antes de finalizar sesion?(s/n)");
@@ -408,7 +380,7 @@ int main(int *argc, char *argv[])
 				}
 			}while(estado!=S_QUIT);
 			
-			//while(estado!=S_QUIT);
+			
 				
 	
 		
